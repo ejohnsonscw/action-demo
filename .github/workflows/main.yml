@@ -1,35 +1,51 @@
-# This is a basic workflow to help you get started with Actions
+# For most projects, this workflow file will not need changing; you simply need
+# to commit it to your repository.
+#
+# You may wish to alter this file to override the set of languages analyzed,
+# or to provide custom queries or build logic.
+#
+# ******** NOTE ********
+# We have attempted to detect the languages in your repository. Please check
+# the `language` matrix defined below to confirm you have the correct set of
+# supported CodeQL languages.
+#
+name: "CI"
 
-name: CI
-
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the main branch
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+    # The branches below must be a subset of the branches above
+    branches: [ "main" ]
+  schedule:
+    - cron: '26 18 * * 4'
 
 jobs:
-  scan:
+  analyze:
+    name: Analyze
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
     steps:
-      - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Add Secure Code Warrior contextual training to SARIF
-        # You may pin to the exact commit or the version.
-        # uses: SecureCodeWarrior/github-action-add-sarif-contextual-training@b11b7dee40de861daa61af5095eb6077d57716c0
-        uses: SecureCodeWarrior/github-action-add-sarif-contextual-training@v1.0.1
-        with:
-          # Relative location of SARIF file to process
-          inputSarifFile: scan-results.sarif
-          # Relative destination location for processed SARIF file
-          outputSarifFile: processed.sarif
-          # Provide `secrets.GITHUB_TOKEN` to use the GitHub access token automatically supplied by GitHub Workflows
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
+    - name: Add Secure Code Warrior contextual training to SARIF
+      # You may pin to the exact commit or the version.
+      # uses: SecureCodeWarrior/github-action-add-sarif-contextual-training@b11b7dee40de861daa61af5095eb6077d57716c0
+      uses: SecureCodeWarrior/github-action-add-sarif-contextual-training@v1.0.1
+      with:
+        # Relative location of SARIF file to process
+        inputSarifFile: scan-results.sarif
+        # Relative destination location for processed SARIF file
+        outputSarifFile: processed.sarif
+        # Provide `secrets.GITHUB_TOKEN` to use the GitHub access token automatically supplied by GitHub Workflows
+        githubToken: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: processed.sarif
+    - name: Upload result to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: processed.sarif
